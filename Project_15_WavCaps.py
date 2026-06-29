@@ -2,9 +2,8 @@
 # coding: utf-8
 
 # # Project 15: Weakly Supervised Audio-Language Pretraining on Noisy Captions
-# **Course:** Applied Machine Learning
-# **Group:** [Insert Group Number]
-# **Team Members:** [Insert Names and Matriculation Numbers]
+# **Course:** Machine Learning
+# **Team Members:** Alok , Apoorv , dennis
 # **Date:** 28 June 2026
 # 
 
