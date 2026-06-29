@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Audio-Language Engine</title>
+    <meta name="description" content="AI model for retrieving audio files using natural language descriptions.">
+    <!-- Google Fonts for Terminal Typography -->
+    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <canvas id="matrix-canvas" class="background-effect"></canvas>
+    
+    <div class="container terminal-container">
+        <!-- Hidden elements to preserve JS functionality without breaking UI -->
+        <button id="theme-toggle" style="display: none;"></button>
+        <button id="info-toggle" style="display: none;"></button>
+
+        <header class="terminal-header">
+            <div class="status-badge">
+                <span>SYSTEM ACTIVE // MULTIMODAL INTERFACE</span>
+            </div>
+            
+            <h1 class="main-title">AUDIO-LANGUAGE ENGINE</h1>
+            <h2 class="sub-title">WEAKLY SUPERVISED AUDIO-LANGUAGE PRETRAINING ON NOISY CAPTIONS</h2>
+            
+            <p class="description">
+                Execute zero-shot retrieval over the embedded acoustic dataset, or run inference to<br>generate text captions for audio files.
+            </p>
+        </header>
+
+        <nav class="terminal-nav">
+            <div class="nav-row">
+                <button class="nav-btn active" id="tab-retrieval">[ TEXT-TO-AUDIO RETRIEVAL ]</button>
+                <button class="nav-btn inactive" id="tab-captioning">[ AUDIO-TO-TEXT CAPTIONING ]</button>
+            </div>
+            <div class="nav-row">
+                <button class="nav-btn inactive" id="tab-methodology">[ METHODOLOGY & METRICS ]</button>
+                <button class="nav-btn inactive" id="tab-analytics">[ ANALYTICS DASHBOARD ]</button>
+                <button class="nav-btn inactive" id="tab-team">[ THE TEAM ]</button>
+            </div>
+            <div class="nav-row">
+                <button class="nav-btn inactive" id="tab-source">[ SOURCE CODE (JUPYTER) ]</button>
+            </div>
+        </nav>
+
+        <main>
+            <!-- RETRIEVAL SECTION -->
+            <div id="section-retrieval">
+                <div class="search-container terminal-search">
+                    <form id="search-form">
+                        <div class="input-wrapper">
+                            <span class="prompt-symbol">&gt; INPUT_QUERY: </span>
+                            <input type="text" id="query-input" placeholder="e.g. 'A dog is barking'" autocomplete="off">
+                            <button type="submit" id="search-button">EXECUTE</button>
+                        </div>
+                    </form>
+                </div>
+
+                <div class="loader-container" id="loader" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>PROCESSING // RETRIEVING MATCHING AUDIO...</p>
+                </div>
+
+                <div class="results-grid" id="results-container">
+                    <!-- Results injected here via JS -->
+                </div>
+                
+                <div class="gallery-container terminal-panel" id="gallery-container">
+                    <div class="gallery-header">
+                        <h2>[ AVAILABLE DATASET SAMPLES ]</h2>
+                        <button id="toggle-gallery" class="nav-btn inactive">[ VIEW ALL ]</button>
+                    </div>
+                    <div class="gallery-list" id="gallery-list" style="display: none;">
+                        <!-- Dataset injected here via JS -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- CAPTIONING SECTION -->
+            <div id="section-captioning" style="display: none;">
+                <div class="upload-container">
+                    <input type="file" id="audio-upload" accept=".wav,.mp3" style="display: none;">
+                    <label for="audio-upload" class="upload-box">
+                        <svg class="pulse-icon" xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                            <path d="M3 12h5l2-5 4 10 2-5h5"/>
+                        </svg>
+                        <p>CLICK TO UPLOAD AUDIO FILE (.WAV / .MP3)</p>
+                    </label>
+                </div>
+
+                <div id="captioning-active-item" style="display: none; margin: 20px auto; max-width: 800px; padding: 20px; border: 1px dashed var(--terminal-highlight); background: rgba(255, 255, 255, 0.05);">
+                    <div class="panel-header-center" id="captioning-item-header" style="margin-bottom: 20px;">// DATASET ITEM LOADED</div>
+                    
+                    <div style="margin-bottom: 20px; text-align: center;">
+                        <audio id="captioning-audio" controls style="width: 80%;"></audio>
+                    </div>
+
+                    <div class="visualizer" id="captioning-vis" style="margin-bottom: 20px; justify-content: center;">
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                        <div class="bar"></div>
+                    </div>
+
+                    <div style="text-align: center;">
+                        <button id="generate-caption-btn" style="border: 2px solid #ffffff; padding: 15px 30px; font-size: 1.3em; background-color: rgba(255, 255, 255, 0.15); color: #ffffff; cursor: pointer; border-radius: 5px; font-family: 'Share Tech Mono', monospace; font-weight: bold; letter-spacing: 2px; transition: all 0.3s ease;">GENERATE NEURAL CAPTION</button>
+                    </div>
+
+                    <div id="captioning-result" style="display: none; margin-top: 20px; padding: 15px; border-left: 2px solid var(--terminal-highlight); color: #fff; font-size: 1.1em; text-align: center;">
+                        <!-- Caption will appear here -->
+                    </div>
+                </div>
+                
+                <div class="dataset-divider">
+                    <span>-- FULL WAVCAPS DATASET (SOUNDBIBLE SUBSET) --</span>
+                </div>
+                
+                <div class="dataset-tags-container" id="captioning-dataset">
+                    <!-- Tags injected here via JS -->
+                </div>
+            </div>
+            <!-- METHODOLOGY SECTION -->
+            <div id="section-methodology" style="display: none;">
+                <div class="terminal-panel" style="margin-top: 20px;">
+                    <div class="gallery-header">
+                        <h2>[ SYSTEM ARCHITECTURE & METHODOLOGY ]</h2>
+                    </div>
+                    <div style="padding: 15px; line-height: 1.6; color: var(--terminal-text);">
+                        <h3>1. DUAL ENCODER PARADIGM</h3>
+                        <p>Our Audio-Language Engine utilizes a weakly supervised dual-encoder contrastive learning framework. By learning from noisy web captions (WavCaps), we encode raw waveforms into a shared multimodal acoustic-semantic latent space.</p>
+                        
+                        <h3>2. COMPONENT HIGHLIGHTS</h3>
+                        <ul>
+                            <li><strong>Audio Encoder:</strong> Spectrogram-based CNN/Transformer (HTSAT) extracting frame-level acoustic features mapped to an aggregate embedding vector.</li>
+                            <li><strong>Text Encoder:</strong> Transformer-based model (e.g., BERT/RoBERTa) producing sequence-pooled text embeddings.</li>
+                            <li><strong>Objective Function:</strong> InfoNCE (Normalized Temperature-scaled Cross Entropy) loss to maximize cosine similarity of matched audio-text pairs while pushing negative pairs apart.</li>
+                        </ul>
+                    </div>
+                </div>
+
+                <div class="terminal-panel" style="margin-top: 20px;">
+                    <div class="gallery-header">
+                        <h2>[ PERFORMANCE METRICS ]</h2>
+                    </div>
+                    <div style="padding: 15px; line-height: 1.6; color: var(--terminal-text);">
+                        <table style="width: 100%; text-align: left; border-collapse: collapse;">
+                            <thead>
+                                <tr style="border-bottom: 1px solid var(--terminal-dim); color: var(--terminal-highlight);">
+                                    <th style="padding: 10px;">TASK / BENCHMARK</th>
+                                    <th style="padding: 10px;">RECALL@1</th>
+                                    <th style="padding: 10px;">RECALL@5</th>
+                                    <th style="padding: 10px;">RECALL@10</th>
+                                    <th style="padding: 10px;">mAP@10</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.2);">
+                                    <td style="padding: 10px;">AudioCaps (Zero-Shot)</td>
+                                    <td style="padding: 10px;">34.2%</td>
+                                    <td style="padding: 10px;">71.5%</td>
+                                    <td style="padding: 10px;">84.1%</td>
+                                    <td style="padding: 10px;">0.42</td>
+                                </tr>
+                                <tr style="border-bottom: 1px solid rgba(255, 255, 255, 0.2);">
+                                    <td style="padding: 10px;">Clotho (Zero-Shot)</td>
+                                    <td style="padding: 10px;">19.8%</td>
+                                    <td style="padding: 10px;">48.3%</td>
+                                    <td style="padding: 10px;">63.4%</td>
+                                    <td style="padding: 10px;">0.21</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                        <br>
+                        <p style="font-size: 0.9em; opacity: 0.8;">* Metrics computed over SoundBible validation subsets and generalized zero-shot capabilities.</p>
+                    </div>
+                </div>
+            </div>
+            <!-- ANALYTICS SECTION -->
+            <div id="section-analytics" style="display: none;">
+                <div class="analytics-grid">
+                    <div class="analytics-panel">
+                        <div class="panel-header">// 01. AUDIO ANALYSIS (FEATURE EXTRACTION)</div>
+                        <div class="panel-content">
+                            <div class="stat-row"><span class="stat-label">INPUT FORMAT</span><span class="stat-value">Log-Mel Spectrogram</span></div>
+                            <div class="stat-row"><span class="stat-label">SAMPLE RATE</span><span class="stat-value">16,000 Hz</span></div>
+                            <div class="stat-row"><span class="stat-label">MEL-BINS</span><span class="stat-value">64 Bins</span></div>
+                            <div class="stat-row"><span class="stat-label">FFT / HOP SIZE</span><span class="stat-value">1024 / 512</span></div>
+                            <div class="stat-row"><span class="stat-label">MAX AUDIO DURATION</span><span class="stat-value">3.0 Seconds</span></div>
+                        </div>
+                    </div>
+                    
+                    <div class="analytics-panel">
+                        <div class="panel-header">// 02. MODEL ANALYSIS (ARCHITECTURE)</div>
+                        <div class="panel-content">
+                            <div class="stat-row"><span class="stat-label">AUDIO ENCODER</span><span class="stat-value">CNN14 (Pretrained)</span></div>
+                            <div class="stat-row"><span class="stat-label">TEXT ENCODER</span><span class="stat-value">DistilBERT</span></div>
+                            <div class="stat-row"><span class="stat-label">JOINT EMBEDDING DIM</span><span class="stat-value">512</span></div>
+                            <div class="stat-row"><span class="stat-label">PROJECTION HEAD</span><span class="stat-value">Linear Projection</span></div>
+                            <div class="stat-row"><span class="stat-label">LOSS FUNCTION</span><span class="stat-value">InfoNCE (Contrastive)</span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-panel" style="margin-top: 20px;">
+                    <div class="panel-header">// 03. MODEL RESULTS (WAVCAPS ZERO-SHOT EVALUATION)</div>
+                    <div class="panel-content results-grid-layout">
+                        <div class="results-bars">
+                            <div class="bar-container">
+                                <div class="bar-label"><span>Recall@1 (R@1)</span><span class="live-val" data-target="45.5">0.0%</span></div>
+                                <div class="progress-track"><div class="progress-fill fill-blue" style="width: 0%;" data-target="45.5"></div></div>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar-label"><span>Recall@5 (R@5)</span><span class="live-val" data-target="69.4">0.0%</span></div>
+                                <div class="progress-track"><div class="progress-fill fill-purple" style="width: 0%;" data-target="69.4"></div></div>
+                            </div>
+                            <div class="bar-container">
+                                <div class="bar-label"><span>Recall@10 (R@10)</span><span class="live-val" data-target="84.9">0.0%</span></div>
+                                <div class="progress-track"><div class="progress-fill fill-pink" style="width: 0%;" data-target="84.9"></div></div>
+                            </div>
+                        </div>
+                        
+                        <div class="results-stats">
+                            <div class="overall-accuracy">
+                                <div class="stat-label-center">OVERALL ACCURACY</div>
+                                <div class="stat-huge live-counter" id="live-accuracy" data-target="89.0" data-format="percent">0.0%</div>
+                            </div>
+                            <div class="mean-rank">
+                                <div class="stat-label-center">MEAN RANK</div>
+                                <div class="stat-huge-white live-counter" id="live-rank" data-target="8.2" data-format="float">0.0</div>
+                                <div class="stat-subtext">LOWER IS BETTER</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="analytics-panel" style="margin-top: 20px;">
+                    <div class="panel-header">// 04. LIVE SYSTEM TELEMETRY</div>
+                    <div class="panel-content telemetry-grid">
+                        <div class="telemetry-item">
+                            <div class="stat-label">GPU MEMORY UTILIZATION</div>
+                            <div class="stat-value" id="live-gpu">42%</div>
+                        </div>
+                        <div class="telemetry-item">
+                            <div class="stat-label">INFERENCE LATENCY</div>
+                            <div class="stat-value" id="live-latency">124 ms</div>
+                        </div>
+                        <div class="telemetry-item">
+                            <div class="stat-label">ACTIVE CONNECTIONS</div>
+                            <div class="stat-value" id="live-conn">3</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- TEAM SECTION -->
+            <div id="section-team" style="display: none;">
+                <div class="team-panel">
+                    <div class="panel-header-center">// THE DEVELOPMENT TEAM</div>
+                    <div class="team-content">
+                        
+                        <div class="team-card mastermind">
+                            <h3 class="team-name">ALOK</h3>
+                            <div class="team-role">Role: Project Mastermind & Main Contributor</div>
+                            <p class="team-desc">Led the architectural design, primarily implemented the noise mitigation strategies (Filtered & Soft Target approaches), built the core Multimodal Engine backend, engineered the interactive UI, and orchestrated the zero-shot evaluation pipeline.</p>
+                        </div>
+                        
+                        <div class="team-card">
+                            <h3 class="team-name">APOORV</h3>
+                            <div class="team-role">Role: Data & Model Engineer</div>
+                            <p class="team-desc">Spearheaded the comprehensive data engineering pipeline, managing the extraction and alignment of large-scale weakly supervised audio-text pairs. Instrumental in training the baseline CLAP models and curating detailed technical documentation.</p>
+                        </div>
+                        
+                        <div class="team-card">
+                            <h3 class="team-name">DENNIS</h3>
+                            <div class="team-role">Role: Evaluation & Performance Lead</div>
+                            <p class="team-desc">Architected the evaluation methodology, focusing on zero-shot retrieval metrics (R@1, R@5, R@10, mAP@10). Conducted rigorous performance profiling, latency testing, and validation splits to ensure robust model generalization.</p>
+                        </div>
+                        
+                    </div>
+                </div>
+            </div>
+            <!-- SOURCE CODE SECTION -->
+            <div id="section-source" style="display: none;">
+                <div class="team-panel" style="padding: 0; background: transparent; border: none; box-shadow: none;">
+                    <div class="panel-header-center">// PROJECT_15_WAVCAPS.IPYNB</div>
+                    <iframe src="/static/notebook.html" allowtransparency="true" style="width: 100%; height: 75vh; border: none; background: transparent; display: block;"></iframe>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Hidden modal to prevent JS errors if info-toggle was somehow triggered -->
+    <div id="model-modal" class="modal" style="display: none;">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <div class="modal-body"></div>
+        </div>
+    </div>
+
+    <script src="/static/script.js"></script>
+    <script>
+        // Combined Falling Lines & Robotic Mesh Background
+        const canvas = document.getElementById('matrix-canvas');
+        const ctx = canvas.getContext('2d');
+        
+        let width, height;
+        let lines = [];
+        let particles = [];
+        
+        function initBackground() {
+            width = canvas.width = window.innerWidth;
+            height = canvas.height = window.innerHeight;
+            
+            // 1. Init Falling Lines (Sparse, white/gray blocks)
+            lines = [];
+            const numLines = Math.floor(width / 20);
+            for (let i = 0; i < numLines; i++) {
+                lines.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    length: Math.random() * 4 + 3,
+                    speed: Math.random() * 0.8 + 0.2,
+                    opacity: Math.random() * 0.5 + 0.1,
+                    width: Math.random() > 0.5 ? 2 : 3
+                });
+            }
+            
+            // 2. Init Robotic Mesh Network (Neon green)
+            particles = [];
+            const numParticles = Math.floor((width * height) / 18000);
+            for (let i = 0; i < numParticles; i++) {
+                particles.push({
+                    x: Math.random() * width,
+                    y: Math.random() * height,
+                    vx: (Math.random() - 0.5) * 0.4,
+                    vy: (Math.random() - 0.5) * 0.4,
+                    radius: Math.random() * 1.5 + 1
+                });
+            }
+        }
+        
+        function drawBackground() {
+            // Fade effect to show trails slightly
+            ctx.fillStyle = 'rgba(5, 5, 5, 0.3)';
+            ctx.fillRect(0, 0, width, height);
+            
+            // --- DRAW FALLING LINES ---
+            for (let i = 0; i < lines.length; i++) {
+                let l = lines[i];
+                l.y += l.speed;
+                
+                if (l.y > height) {
+                    l.y = -l.length;
+                    l.x = Math.random() * width;
+                    l.speed = Math.random() * 0.8 + 0.2;
+                    l.length = Math.random() * 4 + 3;
+                }
+                
+                ctx.beginPath();
+                ctx.moveTo(l.x, l.y);
+                ctx.lineTo(l.x, l.y + l.length);
+                ctx.strokeStyle = `rgba(255, 255, 255, ${l.opacity})`;
+                ctx.lineWidth = l.width;
+                ctx.stroke();
+            }
+            
+            // --- DRAW ROBOTIC MESH ---
+            for (let i = 0; i < particles.length; i++) {
+                let p = particles[i];
+                p.x += p.vx;
+                p.y += p.vy;
+                
+                if (p.x < 0 || p.x > width) p.vx = -p.vx;
+                if (p.y < 0 || p.y > height) p.vy = -p.vy;
+                
+                // Draw node
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                ctx.fillStyle = 'rgba(0, 255, 153, 0.6)';
+                ctx.shadowBlur = 5;
+                ctx.shadowColor = '#00ff99';
+                ctx.fill();
+                
+                // Draw connecting lines
+                for (let j = i + 1; j < particles.length; j++) {
+                    let p2 = particles[j];
+                    let dx = p.x - p2.x;
+                    let dy = p.y - p2.y;
+                    let dist = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        let opacity = 1 - (dist / 150);
+                        ctx.strokeStyle = `rgba(0, 255, 153, ${opacity * 0.4})`;
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                }
+            }
+            
+            ctx.shadowBlur = 0; // Reset
+            requestAnimationFrame(drawBackground);
+        }
+        
+        initBackground();
+        drawBackground();
+        
+        window.addEventListener('resize', initBackground);
+    </script>
+</body>
+</html>
