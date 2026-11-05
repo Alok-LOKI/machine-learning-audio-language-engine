@@ -1,62 +1,80 @@
-# Audio-Language Pretraining Engine
+# 🎧 Audio-Language Engine
 
-**Project 15: Weakly Supervised Audio-Language Pretraining on Noisy Captions**
+**Weakly Supervised Audio-Language Pretraining on Noisy Captions (WavCaps)**
 
-![UI Screenshot](static/notebook.html) *(See live interactive UI by running the server)*
+![Python](https://img.shields.io/badge/Python-3.10+-blue?logo=python&logoColor=white)
+![PyTorch](https://img.shields.io/badge/PyTorch-2.x-EE4C2C?logo=pytorch&logoColor=white)
+![HuggingFace](https://img.shields.io/badge/🤗-Transformers-yellow)
+![FastAPI](https://img.shields.io/badge/FastAPI-backend-009688?logo=fastapi&logoColor=white)
 
-This project explores weakly supervised audio-language pretraining using contrastive learning. By leveraging noisy captions from datasets like WavCaps, the model maps raw audio waveforms and natural language text into a shared multimodal latent space. This allows for zero-shot text-to-audio retrieval.
+A contrastive **dual-encoder** that maps audio and natural-language text into a shared embedding space, trained on the weakly labelled / noisy captions of the [WavCaps](https://huggingface.co/datasets/cvssp/WavCaps) dataset. It enables **text-to-audio retrieval** ("A dog is barking" → matching sound clips) and **audio-to-text retrieval**, served through a custom terminal-style web UI.
 
-**Course:** Machine Learning  
-**Team Members:** Alok, Apoorv, Dennis  
-**Date:** 28 June 2026
+![Audio-Language Engine – text-to-audio retrieval demo](docs/images/screenshot_main.png)
 
-## Features
+**Course:** Machine Learning — University of Europe for Applied Sciences
+**Team:** Alok, Apoorv, Dennis
+**Date:** June 2026
 
-- **Text-to-Audio Retrieval:** Find the most relevant audio samples in the dataset using natural language queries (e.g., "A dog is barking loudly").
-- **Contrastive Learning (InfoNCE):** A dual-encoder architecture utilizing a CNN14/HTSAT audio encoder and a DistilBERT text encoder.
-- **Matrix-Themed Web UI:** A fully custom, interactive terminal-style frontend complete with visualizations, analytics, and an integrated dataset gallery.
-- **FastAPI Backend:** A lightweight, high-performance Python backend serving the model and UI.
-- **Zero-Shot Evaluation:** Robust metrics including Recall@1, Recall@5, Recall@10, and mAP@10 on validation splits.
+---
 
-## Project Structure
+## 🔍 Problem
 
-- `app.py`: The FastAPI web server that handles API endpoints, model caching, and static file serving.
-- `run_server.py`: The entry point to start the local web server using Uvicorn.
-- `static/`: Contains the frontend HTML (`index.html`), CSS styling, and JavaScript logic, along with dynamically generated spectrograms and audio clips.
-- `15_wavecaps.ipynb` / `Project_15_WavCaps.ipynb`: The core Jupyter notebooks containing the data processing pipeline, model architecture, training loop, and evaluation scripts.
-- `build_notebook.py`: A utility script to programmatically generate the project notebook format.
+Large audio-caption datasets like WavCaps are huge but **weakly supervised**: many captions are auto-generated (ChatGPT-rewritten) and may be imprecise or hallucinated.
+**Question:** can contrastive audio-language training on a sampled subset with noisy captions still produce meaningful cross-modal retrieval?
 
-## Setup & Installation
+## 🧠 Method
 
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/Alok-LOKI/machine-learning-audio-language-engine.git
-   cd machine-learning-audio-language-engine
-   ```
+| Component | Choice |
+|---|---|
+| Audio input | 16 kHz waveform → Log-Mel spectrogram (64 mel bins, FFT 1024 / hop 512) |
+| Audio encoder | CNN (spectrogram-based) |
+| Text encoder | DistilBERT (`distilbert-base-uncased`, max 32 tokens) |
+| Projection | Linear heads into a shared 512-d embedding space |
+| Objective | InfoNCE (symmetric, temperature-scaled contrastive loss) |
+| Baseline | Randomly initialised dual-encoder (chance-level retrieval) |
 
-2. **Install Dependencies:**
-   Make sure you have Python installed, then install the required libraries:
-   ```bash
-   pip install fastapi uvicorn torch torchaudio soundfile numpy matplotlib
-   ```
-   *(Note: Depending on your environment, you may also need `transformers` and `huggingface_hub` for the language models).*
+![Methodology](docs/images/screenshot_methodology.png)
 
-3. **Run the Server:**
-   Start the local backend server:
-   ```bash
-   python run_server.py
-   ```
-   
-4. **View the Application:**
-   Open your browser and navigate to `http://127.0.0.1:8000` to interact with the Audio-Language Engine.
+## 📊 Evaluation
 
-## Methodology
+- **Task:** audio-to-text / text-to-audio retrieval on a held-out split
+- **Metrics:** Recall@1, Recall@5, Recall@10, Mean Rank, mAP@10
+- **Result:** the trained dual-encoder clearly outperforms the random baseline on all retrieval metrics. Because the demo uses a small, reproducible subset and short training, absolute scores are modest — see the notebook for exact numbers and error analysis.
 
-Our system utilizes a weakly supervised dual-encoder contrastive learning framework. By learning from noisy web captions, we encode raw waveforms into a shared multimodal acoustic-semantic latent space.
-- **Audio Encoder:** Extracts frame-level acoustic features mapped to an aggregate embedding vector.
-- **Text Encoder:** Produces sequence-pooled text embeddings.
-- **Objective Function:** InfoNCE loss to maximize cosine similarity of matched audio-text pairs while pushing negative pairs apart.
+![Analytics dashboard](docs/images/screenshot_analytics.png)
 
-## License
+## ⚠️ Limitations & Future Work
 
-This project was developed for an academic Machine Learning course.
+- Only a small subset of WavCaps used (compute constraints)
+- Noisy / hallucinated captions break the "aligned pair" assumption
+- Next steps: noise-robust losses, caption filtering / confidence weighting, pretrained audio encoders (CNN14 / HTSAT), and scaling to the full ~400k clips
+
+---
+
+## 🚀 Getting Started
+
+```bash
+git clone https://github.com/Alok-LOKI/machine-learning-audio-language-engine.git
+cd machine-learning-audio-language-engine
+pip install -r requirements.txt
+python run_server.py
+```
+
+Then open **http://127.0.0.1:8000**.
+
+To reproduce training and evaluation, open `Project_15_WavCaps.ipynb` in Jupyter.
+
+## 📁 Project Structure
+
+| Path | Description |
+|---|---|
+| `Project_15_WavCaps.ipynb` / `15_wavecaps.ipynb` | Data pipeline, model, training loop, evaluation |
+| `app.py` | FastAPI server: API endpoints, model caching, static files |
+| `run_server.py` | Starts the server with Uvicorn |
+| `static/` | Frontend (HTML/CSS/JS), spectrograms, audio clips |
+| `docs/images/` | Screenshots |
+| `requirements.txt` | Python dependencies |
+
+## 📄 License
+
+Developed for an academic Machine Learning course. Dataset: WavCaps (cvssp) — please follow its original license terms.
