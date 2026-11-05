@@ -12,7 +12,7 @@ A contrastive **dual-encoder** that maps audio and natural-language text into a 
 ![Audio-Language Engine – text-to-audio retrieval demo](docs/images/screenshot_main.png)
 
 **Course:** Machine Learning — University of Europe for Applied Sciences
-**Team:** Alok, Apoorv, Dennis
+**Author:** Alok
 **Date:** June 2026
 
 ---
